@@ -1,0 +1,17 @@
+.parseContainer{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+.parseChild{
+    flex: 0 0 20%; /* explanation below */
+    margin-left: 5px;
+    height: 50px;
+    /* background-color: blue; */
+}
+
+.willnotrender { 
+    transform: translateZ(0); 
+ }

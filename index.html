@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, idivnitial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="renderer/index.js"></script>
+    <!-- <script src="sjcl.js"></script> -->
+</head>
+<body>
+    <!-- <label for="mp1">1.</label>
+    <input type="text" id="mp1"> -->
+    <label for="pharseNumber">Choose total pharse Number:</label>
+    <br/>
+    <select name="pharseNumber" id="pharseNumber">
+        <option value="3">3</option>
+        <option value="6">6</option>
+        <option value="9">9</option>
+        <option value="12">12</option>
+        <option value="15">15</option>
+        <option value="18">18</option>
+        <option value="21">21</option>
+        <option value="24">24</option>
+    </select>
+    <button id="pharseNumberConfirmBtn">Confirm</button>
+
+    <br/>
+    <br/>
+    <div id="pharseTable" class="parseContainer"></div>
+    <br/>
+
+    <div id="generateAddressPanel" style="display: none;">
+        <label for="totalAddress">Total Number of Address to generate:</label>
+        <input type="number" min="0" max="1000000" step="1" id="totalAddress" value="0"/>
+        <br/>
+        <label for="totalAddressOffset">Address Offset:</label>
+        <input type="number" min="0" max="1000000" step="1" id="totalAddressOffset" value="0"/>
+        <br/>
+        <label for="totalAddressGeneratedLog">Address Generattion Status: </label>
+        <span id="totalAddressGeneratedLog">N/A</span>
+        <!-- <input type="text" id="totalAddressGeneratedLog" value="0" readonly/> -->
+        <br/>
+        <br/>
+        <button id="generateETHAddressBtn">Gen ETH Address</button>
+        <button id="generateBTCAddressBtn">Gen BTC Address</button>
+    </div>
+</body>
+</html>
