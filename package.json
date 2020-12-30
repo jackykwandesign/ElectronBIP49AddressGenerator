@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "main": "main.js",
   "license": "MIT",
-  "author":"Dlo",
-  "description":"Tools to generate BTC/ETH address based on BIP49, work without network",
+  "author": "Dlo",
+  "description": "Tools to generate BTC/ETH address based on BIP49, work without network",
   "dependencies": {
     "base58check": "^2.0.0",
     "bip39": "^3.0.3",
     "crypto-js": "^4.0.0",
     "csv-writer": "^1.6.0",
+    "ethereumjs-util": "^7.0.7",
     "hdkey": "^2.0.1",
     "ripemd160": "^2.0.2"
   },

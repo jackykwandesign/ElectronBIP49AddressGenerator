@@ -1,15 +1,13 @@
 
-// var fs = require('fs'); 
-// const electron =require('electron').remote
 const fs = require('fs')
-// const BrowserWindow = electron.BrowserWindow
-// const ErrDiglog = electron.dialog
+const addressPerCSV = 10000
 
 const bip39 = require('bip39')
 var RIPEMD160 = require('ripemd160')
 var HDKey = require('hdkey')
 var SHA256 = require("crypto-js/sha256");
 var EncHex = require("crypto-js/enc-hex");
+const ethUtil = require('ethereumjs-util');
 
 const base58check = require('base58check')
 // const ethUtil = require('ethereumjs-util');
@@ -51,26 +49,35 @@ const generateAddressFromRoot = (root, coinID, account, change, index) =>{
     if(index > 2147483647){
         throw Error("Account can generate address index <= 2147483647")
     }
-    
+
     // //to generate address
     // 1 wallet chain can generate 2147483648 address (0 to 2147483647)
     // m / BIP / coin / account / change / address index
     // coinID BTC = 1, ETH = 60
-    const deriveStr = `m/49'/${coinID}'/${account}'/${change}/${index}`
-    // const deriveStr = "m/49'/60'/0'/0/0"
-    let addrNode = root.derive(deriveStr); //line 1
 
-    // console.log("_publicKey", addrNode._publicKey.toString('hex'))
+    let bip = coinID === 0 ? 49 : 44 //only use 49 when bitcoin
+    const deriveStr = `m/${bip}'/${coinID}'/${account}'/${change}/${index}`
+    const addrNode = root.derive(deriveStr);
+    let finalAddress = ""
+    switch(bip){
+        case 44:
+            const pubKey = ethUtil.privateToPublic(addrNode._privateKey);
+            console.log("_privateKey", addrNode._privateKey.toString('hex'))
+            console.log("_publicKey", addrNode._publicKey.toString('hex'))
+            const addr = ethUtil.publicToAddress(pubKey).toString('hex');
+            finalAddress = ethUtil.toChecksumAddress('0x'+addr);
+            break
+        case 49:
+            const keyhash  = hash160(addrNode._publicKey)
+            const scriptSig = Buffer.from(("0014" + keyhash.toString('hex')), 'hex')
+            const addressBytes  = hash160(scriptSig)
+            finalAddress = "0x" + base58check.encode(addressBytes,"05")
+            break
+        default:
+            finalAddress = "bip error"
+            break
+    }
 
-    const keyhash  = hash160(addrNode._publicKey)
-    // console.log("keyhash", keyhash, keyhash.toString('hex'))
-
-    const scriptSig = Buffer.from(("0014" + keyhash.toString('hex')), 'hex')
-    const addressBytes  = hash160(scriptSig)
-    // console.log("addressBytes", addressBytes, addressBytes.toString('hex'))
-    
-    let finalAddress = base58check.encode(addressBytes,"05")
-    // console.log("finalAddress", finalAddress)
     return {
         deriveStr,
         address:finalAddress, 
@@ -134,13 +141,16 @@ const generateAddress = async(parseArray, coinID) =>{
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
+        let totalRound = Number(Math.ceil(totalAddress / addressPerCSV))
+        let currentTime = new Date()
+        let currentTimeStr = `${currentTime.getFullYear()}_${currentTime.getMonth()}_${currentTime.getDate()}_${currentTime.getHours()}_${currentTime.getMinutes()}`
         while(totalGeneratedAddress < totalAddress){
-            let currentRound = Number((totalGeneratedAddress / 1000).toFixed(0)) + 1
+            let currentRound = Number((totalGeneratedAddress / addressPerCSV).toFixed(0)) + 1
             let dataArray = []
-            document.getElementById("totalAddressGeneratedLog").textContent = `generating address, process ${currentRound} / ${(Math.ceil(totalAddress / 1000))}`
+            document.getElementById("totalAddressGeneratedLog").textContent = `generating address, process ${currentRound} / ${totalRound}`
             let diff = totalAddress - totalGeneratedAddress
-            if(diff > 1000){
-                diff = 1000
+            if(diff > addressPerCSV){
+                diff = addressPerCSV
             }
             for(let i = (totalAddressOffset * 1 + totalGeneratedAddress * 1); i < (totalAddressOffset * 1 + totalGeneratedAddress * 1 + diff); i++){
                 let {address, deriveStr} = await generateAddressFromRoot(root, coinID, 0, 0,i)
@@ -151,7 +161,7 @@ const generateAddress = async(parseArray, coinID) =>{
                     coin: ConvertCoinIDEnumToString(coinID),
                 })
             }
-            const filePath = `${dir}/out_${ConvertCoinIDEnumToString(coinID)}_${totalAddress}_${currentRound}.csv`
+            const filePath = `${dir}/${currentTimeStr}_out_${ConvertCoinIDEnumToString(coinID)}_${totalAddress}_${currentRound}.csv`
             const csvWriter = createCsvWriter({
                 path: filePath,
                 header: [
@@ -169,7 +179,7 @@ const generateAddress = async(parseArray, coinID) =>{
                 
                 await csvWriter.writeRecords(dataArray)
                 document.getElementById("totalAddressGeneratedLog").textContent = "csv completed."
-                totalGeneratedAddress += 1000 * 1
+                totalGeneratedAddress += addressPerCSV * 1
             } catch (error) {
                 alert(error)
             }
